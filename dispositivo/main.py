@@ -4,8 +4,8 @@ from processador import ProcessadorPesagem
 from cliente_api import ClienteAPI
 
 
-CAMINHO_MODELO = "modelos/banana.pt"
-CAMINHO_IMAGEM = "imagens/banana.jpg"
+CAMINHO_MODELO = "../models/banana.pt"
+CAMINHO_IMAGEM = "../images/RipaBana.jpg"
 
 URL_API = "http://127.0.0.1:8000/api/pesagens/"
 
@@ -19,7 +19,7 @@ balanca = BalancaSimulada(
 )
 
 processador = ProcessadorPesagem(
-    confianca_minima=0.70
+    confianca_minima=0.50
 )
 
 api = ClienteAPI(

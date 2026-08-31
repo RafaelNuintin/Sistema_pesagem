@@ -1,6 +1,5 @@
 from ultralytics import YOLO
 
-
 class Detector:
 
     def __init__(self, caminho_modelo):
