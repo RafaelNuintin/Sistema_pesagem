@@ -1,6 +1,14 @@
+<<<<<<< HEAD
 torch==2.13.0
 torchvision==0.28.0
 ultralytics==8.4.136
 ultralytics-platform==0.1.20
 ultralytics-thop==2.1.6
+=======
+torch==2.13.0
+torchvision==0.28.0
+ultralytics==8.4.136
+ultralytics-platform==0.1.20
+ultralytics-thop==2.1.6
+>>>>>>> c531a832e391fa3ec5abc572757318a8f855d7cf
 urllib3==2.7.0
