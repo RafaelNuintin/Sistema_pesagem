@@ -5,9 +5,3 @@ class BalancaSimulada:
 
     def ler_peso(self):
         return self.peso
-    
-balanca = BalancaSimulada(12.47)
-
-peso = balanca.ler_peso()
-
-print(peso)

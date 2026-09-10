@@ -2,7 +2,7 @@ from collections import Counter
 
 class ProcessadorPesagem:
 
-    def __init__(self, confianca_minima=0.50):
+    def __init__(self, confianca_minima=0.40):
         self.confianca_minima = confianca_minima
 
     def processar(self, resultado):

@@ -1,14 +1,17 @@
+from pathlib import Path
+
 from detector import Detector
 from balanca_simulada import BalancaSimulada
 from processador import ProcessadorPesagem
 from cliente_api import ClienteAPI
 
 
-CAMINHO_MODELO = "../models/banana.pt"
-CAMINHO_IMAGEM = "../images/RipaBana.jpg"
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+CAMINHO_MODELO = BASE_DIR / "models" / "banana.pt"
+CAMINHO_IMAGEM = BASE_DIR / "images" / "RipaBana.jpg"
 
 URL_API = "http://127.0.0.1:8000/api/pesagens/"
-
 
 # 1. Inicializar componentes
 
