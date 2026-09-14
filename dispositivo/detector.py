@@ -9,6 +9,15 @@ class Detector:
 
         results = self.model(caminho_imagem)
 
+        return self._processar_resultado(results)
+    
+    def detectar_frame(self, frame, confianca_minima=0.50):
+        
+        results = self.model(frame, conf=confianca_minima)
+
+        return self._processar_resultado(results)
+
+    def _processar_resultado(self, results):
         contador_classes = {}
 
         deteccoes = []
