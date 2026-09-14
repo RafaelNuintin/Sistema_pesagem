@@ -1,22 +1,59 @@
 from django.db import models
 
 class Pesagem(models.Model):
-    produto = models.CharField(max_length=100)
 
     massa = models.DecimalField(
         max_digits=10,
         decimal_places=3
     )
 
-    contagem = models.JSONField(
-        default=dict
+    frames_analisados = models.PositiveIntegerField(
+        default=0
     )
 
-    quantidade_deteccoes = models.PositiveIntegerField()
+    objetos_rastreados = models.PositiveIntegerField(
+        default=0
+    )
 
     data_hora = models.DateTimeField(
         auto_now_add=True
     )
 
     def __str__(self):
-        return f"{self.produto} - {self.massa} kg"
+
+        return (
+            f"Pesagem #{self.id} - "
+            f"{self.massa} kg"
+        )
+
+
+class ItemPesagem(models.Model):
+
+    pesagem = models.ForeignKey(
+        Pesagem,
+        on_delete=models.CASCADE,
+        related_name="itens"
+    )
+
+    classe = models.CharField(
+        max_length=100
+    )
+
+    quantidade = models.PositiveIntegerField()
+
+    confianca_media = models.FloatField(
+        null=True,
+        blank=True
+    )
+
+    razao_votacao = models.FloatField(
+        null=True,
+        blank=True
+    )
+
+    def __str__(self):
+
+        return (
+            f"{self.classe} - "
+            f"{self.quantidade}"
+        )

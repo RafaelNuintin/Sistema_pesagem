@@ -1,34 +1,59 @@
 from pathlib import Path
+
 import json
 
 from detector import Detector
+
 from detector_video import DetectorVideo
+
 from votador_temporal import VotadorTemporal
+
 from balanca_simulada import BalancaSimulada
-from processador import ProcessadorPesagem
+
 from cliente_api import ClienteAPI
 
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = (
+    Path(__file__).resolve().parent.parent
+)
 
-CAMINHO_MODELO = BASE_DIR / "models" / "banana.pt"
-CAMINHO_IMAGEM = BASE_DIR / "images" / "RipaBana.jpg"
-CAMINHO_VIDEO = BASE_DIR / "videos" / "teste_bananas.mp4"
 
-URL_API = "http://127.0.0.1:8000/api/pesagens/"
+CAMINHO_MODELO = (
+    BASE_DIR / "models" / "banana.pt"
+)
 
+CAMINHO_VIDEO = (
+    BASE_DIR / "videos" / "teste_bananas.mp4"
+)
+
+URL_API = (
+    "http://127.0.0.1:8000/api/pesagens/"
+)
+
+
+# =====================================================
 # 1. Inicializar componentes
+# =====================================================
 
-detector = Detector(CAMINHO_MODELO)
+detector = Detector(
+    CAMINHO_MODELO
+)
+
+detector_video = DetectorVideo(
+    detector,
+    tracker="bytetrack.yaml"
+)
+
+votador = VotadorTemporal(
+
+    razao_minima=0.80,
+
+    observacoes_minimas=3
+
+)
 
 balanca = BalancaSimulada(
     peso=12.47
-)
-
-detector_video = DetectorVideo(detector)
-
-processador = ProcessadorPesagem(
-    confianca_minima=0.50
 )
 
 api = ClienteAPI(
@@ -36,112 +61,140 @@ api = ClienteAPI(
 )
 
 
-# 2. Executar inferência
+# =====================================================
+# 2. Processar vídeo
+# =====================================================
 
-resultado_yolo = detector.detectar(
-    CAMINHO_IMAGEM
+resultados = (
+    detector_video.processar_video(
+
+        CAMINHO_VIDEO,
+
+        intervalo_votacao=5,
+
+        confianca_minima=0.50
+
+    )
 )
 
 
-# 3. Determinar produto
+# =====================================================
+# 3. Realizar votação temporal
+# =====================================================
 
-resultado = processador.processar(
-    resultado_yolo
+resultado_final = (
+    votador.votar(
+        resultados
+    )
 )
 
-resultados = detector_video.processar_video(
-    CAMINHO_VIDEO,
-    intervalo_frames=5,
-    confianca_minima=0.50
+
+print("\nResultado da votação:")
+
+print(
+
+    json.dumps(
+
+        resultado_final,
+
+        indent=4,
+
+        ensure_ascii=False
+
+    )
+
 )
 
-votador = VotadorTemporal(exigir_unanimidade=True)
 
-resultado_final = votador.votar(resultados)
+# =====================================================
+# 4. Verificar resultado
+# =====================================================
 
 if not resultado_final["sucesso"]:
-    print("\nPesagem não validada.")
-    print(resultado_final)
-
-
-else:
-    balanca = BalancaSimulada(peso=12.47)
-
-    peso = balanca.ler_peso()
-
-    pesagem = {
-
-        "produto": (
-            list(
-                resultado_final["contagem"].keys()
-            )[0]
-        ),
-
-        "massa": peso,
-
-        "contagem": (
-            resultado_final["contagem"]
-        ),
-
-        "quantidade_deteccoes": sum(
-            resultado_final["contagem"].values()
-        ),
-
-        "frames_analisados": (
-            resultado_final["frames_analisados"]
-        ),
-
-        "votos": (
-            resultado_final["votos"]
-        )
-    }
-
-    print("\nPesagem final:")
 
     print(
-        json.dumps(
-            pesagem,
-            indent=4,
-            ensure_ascii=False
-        )
+        "\nPesagem não validada."
     )
 
-if resultado is None:
-
-    print("Nenhum produto identificado com confiança suficiente.")
+    print(
+        "Nenhum objeto atingiu "
+        "a maioria qualificada."
+    )
 
 else:
 
-    # 4. Ler peso
+    # =================================================
+    # 5. Ler peso da balança
+    # =================================================
 
-    peso = balanca.ler_peso()
+    peso = (
+        balanca.ler_peso()
+    )
 
 
-    # 5. Montar registro
+    # =================================================
+    # 6. Montar registro para API
+    # =================================================
 
     pesagem = {
 
-        "produto": resultado["produto"],
-
         "massa": peso,
 
-        "contagem": resultado["contagem"],
+        "contagem":
+            resultado_final["classes"],
 
         "quantidade_deteccoes":
-            resultado["quantidade_deteccoes"]
+            sum(
+                resultado_final["classes"].values()
+            ),
+
+        "frames_analisados":
+            resultado_final[
+                "frames_analisados"
+            ],
+
+        "objetos_rastreados":
+            resultado_final[
+                "objetos_rastreados"
+            ]
 
     }
 
 
-    print("\nPesagem:")
-    print(pesagem)
-
-
-    # 6. Enviar para Django
-
-    resposta = api.registrar_pesagem(
-        pesagem
+    print(
+        "\nPesagem final:"
     )
 
-    print("\nServidor:")
-    print(resposta)
+    print(
+
+        json.dumps(
+
+            pesagem,
+
+            indent=4,
+
+            ensure_ascii=False
+
+        )
+
+    )
+
+
+    # =================================================
+    # 7. Enviar para Django
+    # =================================================
+
+    resposta = (
+        api.registrar_pesagem(
+            pesagem
+        )
+    )
+
+
+    print(
+        "\nServidor:"
+    )
+
+    print(
+        resposta
+    )

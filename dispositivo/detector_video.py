@@ -3,20 +3,31 @@ import cv2
 
 class DetectorVideo:
 
-    def __init__(self, detector):
+    def __init__(
+        self,
+        detector,
+        tracker="bytetrack.yaml"
+    ):
+
         self.detector = detector
+        self.tracker = tracker
 
     def processar_video(
         self,
         caminho_video,
-        intervalo_frames=5,
+        intervalo_votacao=5,
         confianca_minima=0.50
     ):
-        captura = cv2.VideoCapture(str(caminho_video))
+
+        captura = cv2.VideoCapture(
+            str(caminho_video)
+        )
 
         if not captura.isOpened():
+
             raise ValueError(
-                f"Não foi possível abrir o vídeo: {caminho_video}"
+                f"Não foi possível abrir o vídeo: "
+                f"{caminho_video}"
             )
 
         resultados = []
@@ -30,19 +41,29 @@ class DetectorVideo:
             if not sucesso:
                 break
 
-            if numero_frame % intervalo_frames != 0:
-                numero_frame += 1
-                continue
-
-            resultado = self.detector.detectar_frame(
-                frame,
-                confianca_minima
+            # Tracking ocorre em todos os frames
+            resultado = (
+                self.detector.rastrear_frame(
+                    frame,
+                    confianca_minima,
+                    self.tracker
+                )
             )
 
-            resultados.append({
-                "frame": numero_frame,
-                "resultado": resultado
-            })
+            # Somente alguns frames entram
+            # efetivamente na votação
+            if (
+                numero_frame %
+                intervalo_votacao == 0
+            ):
+
+                resultados.append({
+
+                    "frame": numero_frame,
+
+                    "resultado": resultado
+
+                })
 
             numero_frame += 1
 
