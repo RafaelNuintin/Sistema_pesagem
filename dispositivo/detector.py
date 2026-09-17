@@ -33,14 +33,16 @@ class Detector:
     def rastrear_frame(
         self,
         frame,
-        confianca_minima=0.50,
-        tracker="bytetrack.yaml"
+        confianca_minima=0.10,
+        tracker="bytetrack.yaml",
+        imgsz=960
     ):
 
         results = self.model.track(
             frame,
             persist=True,
             conf=confianca_minima,
+            imgsz=imgsz,
             tracker=tracker,
             verbose=False
         )

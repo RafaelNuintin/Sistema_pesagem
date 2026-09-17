@@ -26,6 +26,10 @@ CAMINHO_VIDEO = (
     BASE_DIR / "videos" / "teste_bananas.mp4"
 )
 
+CAMINHO_VIDEO_SAIDA = (
+    BASE_DIR / "videos" / "teste_bananas_tracking.mp4"
+)
+
 URL_API = (
     "http://127.0.0.1:8000/api/pesagens/"
 )
@@ -67,13 +71,10 @@ api = ClienteAPI(
 
 resultados = (
     detector_video.processar_video(
-
         CAMINHO_VIDEO,
-
         intervalo_votacao=5,
-
-        confianca_minima=0.50
-
+        confianca_minima=0.10,
+        caminho_saida=CAMINHO_VIDEO_SAIDA
     )
 )
 

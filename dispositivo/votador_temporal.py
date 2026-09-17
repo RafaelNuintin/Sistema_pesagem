@@ -46,7 +46,10 @@ class VotadorTemporal:
 
             boxes = resultado.boxes
 
-            if boxes is None:
+            if boxes is None or len(boxes) == 0:
+                continue
+
+            if not boxes.is_track:
                 continue
 
             if boxes.id is None:
