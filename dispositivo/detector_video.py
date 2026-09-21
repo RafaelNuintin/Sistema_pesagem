@@ -11,22 +11,22 @@ class DetectorVideo:
         self.detector = detector
         self.tracker = tracker
 
-    def processar_video(
+    def processar_camera(
         self,
-        caminho_video,
+        camera_id=0,
         intervalo_votacao=5,
         confianca_minima=0.10,
         caminho_saida=None
     ):
 
         captura = cv2.VideoCapture(
-            str(caminho_video)
+            camera_id,
+            cv2.CAP_DSHOW
         )
 
         if not captura.isOpened():
             raise ValueError(
-                f"Não foi possível abrir o vídeo: "
-                f"{caminho_video}"
+                "Não foi possível abrir a câmera."
             )
 
         resultados = []
@@ -74,10 +74,6 @@ class DetectorVideo:
             if not sucesso:
                 break
 
-            # -----------------------------------------
-            # Tracking
-            # -----------------------------------------
-
             resultado = (
                 self.detector.rastrear_frame(
                     frame,
@@ -86,55 +82,27 @@ class DetectorVideo:
                 )
             )
 
-            # -----------------------------------------
-            # Visualização
-            # -----------------------------------------
+            frame_anotado = resultado.plot(
+                conf=True,
+                labels=True,
+                boxes=True
+            )
 
             if escritor is not None:
-
-                frame_anotado = resultado.plot(
-                    conf=True,
-                    labels=True,
-                    boxes=True
-                )
-
                 escritor.write(
                     frame_anotado
                 )
 
-            # -----------------------------------------
-            # Diagnóstico
-            # -----------------------------------------
-
-            boxes = resultado.boxes
-
-            quantidade = (
-                len(boxes)
-                if boxes is not None
-                else 0
+            cv2.imshow(
+                "Sistema de Pesagem",
+                frame_anotado
             )
-
-            possui_ids = (
-                boxes is not None
-                and boxes.id is not None
-            )
-
-            # -----------------------------------------
-            # Votação
-            # -----------------------------------------
 
             if (
                 numero_frame
                 % intervalo_votacao
                 == 0
             ):
-
-                print(
-                    f"Frame {numero_frame}: "
-                    f"{quantidade} detecção(ões), "
-                    f"IDs disponíveis: "
-                    f"{possui_ids}"
-                )
 
                 resultados.append({
                     "frame": numero_frame,
@@ -143,9 +111,16 @@ class DetectorVideo:
 
             numero_frame += 1
 
+            tecla = cv2.waitKey(1) & 0xFF
+
+            if tecla == ord("q"):
+                break
+
         captura.release()
 
         if escritor is not None:
             escritor.release()
+
+        cv2.destroyAllWindows()
 
         return resultados
